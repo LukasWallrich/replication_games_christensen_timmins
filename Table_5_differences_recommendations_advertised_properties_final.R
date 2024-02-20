@@ -1,17 +1,17 @@
 # ---------------------------------------------------------------------------------------------- #
 #   Generate Table 5. Differences in Recommendations and Availability of Advertised Properties   #
-#                                                                                                # 
+#                                                                                                #
 #   R-Version: 4.04                                                                              #                                                             #
 #   Date Last Modification: 12/01/2021                                                           #
 # -----------------------------------------------------------------------------------------------#
 
 # Clear workspace
 
-rm(list = ls())
+#rm(list = ls())
 
 # Set working directory
 
-setwd("~/")
+setwd(here::here())
 
 # Define function for loading packages
 pkgTest <- function(x) {
@@ -29,7 +29,7 @@ lapply(packages, pkgTest)
 
 # Output directory
 
-out <- "~/"
+out <- here::here("output")
 
 ## Housing Search  ######################################################################################################
 
@@ -42,9 +42,9 @@ out <- "~/"
 # Model 4: treatment effect also conditional on racial composition of block group of recommended listing
 # Model 5: treatment effect also conditional on price of recommended home
 
-# Load data  
+# Load data
 
-recs_trial_final <- readRDS("adsprocessed_JPE.rds")
+recs_trial_final <- readRDS("Final Data Sets/adsprocessed_JPE.rds")
 
 #construct separate indicators for market and control
 
@@ -65,7 +65,7 @@ recs_trial_final$count=1
 
 
 # Dicrimination and Showings
-# STEERING AND white NEIGHBORHOOD 
+# STEERING AND white NEIGHBORHOOD
 
 SHOW1 <- felm(show ~ ofcolor | CONTROL + SEQUENCE.x + month + HCITY + market + ARELATE2 + HHMTYPE + SAPPTAM + TSEX.x + THHEGAI + TPEGAI + THIGHEDU + TCURTENR +  ALGNCUR + AELNG1 + DPMTEXP + AMOVERS + age + ALEASETP + ACAROWN| 0 | CONTROL, data  = recs_trial_final)
 SHOW3 <- felm(show ~ ofcolor + w2012pc_Ad + b2012pc_Ad + a2012pc_Ad + hisp2012pc_Ad + logAdPrice | CONTROL + SEQUENCE.x + month + HCITY + market + ARELATE2 + HHMTYPE + SAPPTAM + TSEX.x + THHEGAI + TPEGAI + THIGHEDU + TCURTENR +  ALGNCUR + AELNG1 + DPMTEXP + AMOVERS + age + ALEASETP + ACAROWN| 0 |CONTROL, data  = recs_trial_final)
@@ -76,7 +76,7 @@ SHOW3_ <- felm(show ~ APRACE + w2012pc_Ad + b2012pc_Ad + a2012pc_Ad + hisp2012pc
 
 ##########################################################################################################################################################################
 
-# STEERING 
+# STEERING
 
 recs_trial_final$home_av <- recs_trial_final$SAVLBAD
 recs_trial_final$home_av[recs_trial_final$home_av<0] <- NA
@@ -89,13 +89,14 @@ SHOWad1_ <- felm(home_av ~ APRACE | CONTROL + SEQUENCE.x + month + HCITY + marke
 SHOWad3_ <- felm(home_av ~ APRACE + w2012pc_Ad + b2012pc_Ad + a2012pc_Ad + hisp2012pc_Ad + logAdPrice | CONTROL + SEQUENCE.x + month + HCITY + market + ARELATE2 + HHMTYPE + SAPPTAM + TSEX.x + THHEGAI + TPEGAI + THIGHEDU + TCURTENR +  ALGNCUR + AELNG1 + DPMTEXP + AMOVERS + age + ALEASETP + ACAROWN| 0 |CONTROL, data  = recs_trial_final)
 
 ### GENERATE TABLES
-out <- "C:/Users/genin/OneDrive/Documents/Git/Discrimination/output/"
+# Already set above
+#out <- "C:/Users/genin/OneDrive/Documents/Git/Discrimination/output/"
 
 ###########Control Group Mean####################
 
 stargazer(SHOW1, SHOW3, SHOWad1, SHOWad3,
           type = "latex",
-          out = paste0(out, "HUM_tab5_JPE.tex"),
+          out = paste0(out, "/HUM_tab5_JPE.tex"),
           title="Steering and Neighborhood Effects",
           model.numbers = F,
           keep = c("ofcolor"),
@@ -108,7 +109,7 @@ stargazer(SHOW1, SHOW3, SHOWad1, SHOWad3,
 
 stargazer(SHOW1_, SHOW3_, SHOWad1_, SHOWad3_,
           type = "latex",
-          out = paste0(out, "HUM_tab5_JPE_.tex"),
+          out = paste0(out, "/HUM_tab5_JPE_.tex"),
           title="Steering and Neighborhood Effects",
           dep.var.labels.include = F,
           column.labels = c("Number of Recommendations","Home Availability"),
@@ -123,4 +124,38 @@ stargazer(SHOW1_, SHOW3_, SHOWad1_, SHOWad3_,
           add.lines = list(c("ln(Price) Advert Home","N","Y","N","Y"),
                            c("Racial Comp Advert Home","N","Y","N","Y")))
 
+# For readability, save as HTML
+stargazer(SHOW1, SHOW3, SHOWad1, SHOWad3,
+          type = "html",
+          out = paste0(out, "/HUM_tab5_JPE.html"),
+          title="Steering and Neighborhood Effects",
+          model.numbers = F,
+          keep = c("ofcolor"),
+          covariate.labels = c("Racial Minority"),
+          keep.stat=c("n","adj.rsq"),
+          digits=4,digits.extra=0,no.space=T,align=T,model.names=F,notes.append=T,object.names=F,
+          add.lines = list(c("ln(Price) Advert Home","N","Y","N","Y"),
+                           c("Racial Comp Advert Home","N","Y","N","Y")))
+
+
+
+stargazer(SHOW1_, SHOW3_, SHOWad1_, SHOWad3_,
+          type = "html",
+          out = paste0(out, "/HUM_tab5_JPE_.html"),
+          title="Steering and Neighborhood Effects",
+          dep.var.labels.include = F,
+          column.labels = c("Number of Recommendations","Home Availability"),
+          model.numbers = F,
+          keep = c("APRACE"),
+          covariate.labels = c("African American",
+                               "Hispanic",
+                               "Asian",
+                               "Other"),
+          keep.stat=c("n","adj.rsq"),
+          digits=4,digits.extra=0,no.space=T,align=T,model.names=F,notes.append=T,object.names=F,
+          add.lines = list(c("ln(Price) Advert Home","N","Y","N","Y"),
+                           c("Racial Comp Advert Home","N","Y","N","Y")))
+
+# Comparison with paper
+# All coefficients and SEs match
 
