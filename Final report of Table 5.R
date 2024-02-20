@@ -11,9 +11,7 @@
 #'   - \usepackage{dcolumn} 
 #' ---
 
-#' Reference: Christensen, P., & Timmins, C. (2022). Sorting or steering: The effects of housing discrimination on neighborhood choice. *Journal of Political Economy*, *130*(8), 2110-2163. https://doi.org/10.1086/720140
-
-#+ setup, echo=FALSE, include=FALSE
+#+ setup, echo=FALSE, include=FALSE, results = FALSE
 # Clear workspace
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 rm(list = ls())
@@ -139,18 +137,15 @@ stargazer(SHOW1_, SHOW3_, SHOWad1_, SHOWad3_,
           add.lines = list(c("ln(Price) Advert Home","N","Y","N","Y"),
                            c("Racial Comp Advert Home","N","Y","N","Y")))
 
-#' We note that in *Table 5*, the authors merge tables from two different models, but only report the R2 for the second table. While these differences do not alter the direction of the results, it would have been more transparent to report the R2 separately for the two models.
+#' We note that in *Table 5*, the authors merge tables from two different models (here denoted as Table 1 and Table 2), but only report the R2 for the second table (see next page for Table 2). Though it would have been transparent to report both, these differences do not alter the direction of the results.
+#' 
+
+#' Reference: Christensen, P., & Timmins, C. (2022). Sorting or steering: The effects of housing discrimination on neighborhood choice. *Journal of Political Economy*, *130*(8), 2110-2163. https://doi.org/10.1086/720140
 #' 
 
 #' # Robustness Check 1: Imputing Missing Data
 
-#' First check the missing data
-
-# Smaller subset of data for easier inspection
-# recs_trial_final %>%
-  # select(manualworkerId:att_check2_raw, 
-  #        condition:condition_dum) %>%
-  # vis_miss
+#' Let's have a look at the missing data patterns.
 
 recs_trial_final <- readRDS("adsprocessed_JPE.rds")
 
@@ -170,33 +165,44 @@ new.data <- recs_trial_final %>%
   select(-c(HCITY, CONTROL)) %>%
   as.data.frame()
 
-new.data %>%
-  select(where(is.factor)) %>%
-  lapply(levels)
+# Commenting because cannot hide from output, but useful during interactive testiing
+#+ echo=FALSE, include=FALSE, results = FALSE
+# new.data %>%
+#   select(where(is.factor)) %>%
+#   lapply(levels)
 
 # Check how many missing values per variable
-#+ echo=FALSE, include=FALSE
-lapply(new.data, \(x) sum(is.na(x)))
+#+ echo=FALSE, include=FALSE, results = FALSE
+# Commenting because cannot hide from output, but useful during interactive testiing
+# lapply(new.data, \(x) sum(is.na(x)))
   
+# Smaller subset of data for easier inspection
+#+ echo=FALSE, include=TRUE, results = FALSE
+vis_miss(new.data)
+
+#+ echo=FALSE, include=FALSE, results = FALSE
 # Parallel processing
 registerDoParallel(cores = 18)
 
 # Variables
-#+ echo=FALSE, include=FALSE
+#+ echo=FALSE, include=FALSE, results = FALSE
 x <- Sys.time()
-x
+# Commenting because cannot hide from output, but useful during interactive testiing
+# x
 set.seed(100)
-data.imp <- missForest(new.data, verbose = TRUE, parallelize = "variables")
+# verbose = TRUE is useful during interactive testing
+data.imp <- missForest(new.data, verbose = FALSE, parallelize = "variables")
 y <- Sys.time()
-y
-
-y - x
+# Commenting because cannot hide from output, but useful during interactive testiing
+# y
+# y - x
 
 # Extract imputed dataset
 recs_trial_final_imputed <- data.imp$ximp
 
-#+ echo=FALSE, include=FALSE
-lapply(recs_trial_final_imputed, \(x) sum(is.na(x)))
+#+ echo=FALSE, include=FALSE, results = FALSE
+# Commenting because cannot hide from output, but useful during interactive testiing
+# lapply(recs_trial_final_imputed, \(x) sum(is.na(x)))
 
 # Add back HCITY, CONTROL
 recs_trial_final <- recs_trial_final_imputed %>%
@@ -248,6 +254,8 @@ SHOWad3_ <- felm(home_av ~ APRACE + w2012pc_Ad + b2012pc_Ad + a2012pc_Ad + hisp2
 # out <- "C:/Users/genin/OneDrive/Documents/Git/Discrimination/output/"
 
 ###########Control Group Mean####################
+
+#' There is not a ton of missing data, but still, after having imputed the data using *missForest* (Waljee et al., 2013), we can have a look at the updated estimates:
 
 #+ results="asis"
 stargazer(SHOW1, SHOW3, SHOWad1, SHOWad3,
